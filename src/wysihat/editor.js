@@ -9,12 +9,13 @@ WysiHat.Editor = {
    *
    *  Creates a new editor for the textarea.
    **/
-  attach: function(textarea, options) {
+  attach: function(textarea, options, block) {
     options = $H(options);
     textarea = $(textarea);
     textarea.hide();
 
     var model = options.get('model') || WysiHat.iFrame;
+    var initializer = block;
 
     return model.create(textarea, function(editArea) {
       var document = editArea.getDocument();
@@ -74,9 +75,12 @@ WysiHat.Editor = {
       // Firefox starts "locked"
       // Insert a character bogus character and undo
       if (Prototype.Browser.Gecko) {
-        editor.execCommand('inserthtml', false, '-');
-        editor.execCommand('undo', false, null);
+        editArea.execCommand('inserthtml', false, '-');
+        editArea.execCommand('undo', false, null);
       }
+
+      if (initializer)
+        initializer(editArea);
 
       editArea.focus();
     });
