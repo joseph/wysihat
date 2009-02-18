@@ -54,12 +54,6 @@ WysiHat.Editor = {
         editArea.fire("wysihat:paste");
       });
 
-
-      editArea.observe("wysihat:change", function(event) {
-        event.target.save();
-      });
-
-
       // Fire the cursormove event if selection has changed due to some event
       fun = function (event) {
         var rg = editArea.selection.getRange();
@@ -75,7 +69,6 @@ WysiHat.Editor = {
       // Firefox starts "locked"
       // Insert a character bogus character and undo
       if (Prototype.Browser.Gecko) {
-        editArea.execCommand('inserthtml', false, '-');
         editArea.execCommand('undo', false, null);
       }
 
