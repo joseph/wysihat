@@ -6,6 +6,7 @@ WYSIHAT_ROOT          = File.expand_path(File.dirname(__FILE__))
 WYSIHAT_SRC_DIR       = File.join(WYSIHAT_ROOT, 'src')
 WYSIHAT_DIST_DIR      = File.join(WYSIHAT_ROOT, 'dist')
 WYSIHAT_DOC_DIR       = File.join(WYSIHAT_ROOT, 'doc')
+WYSIHAT_WEBSITE_DIR   = File.join(WYSIHAT_ROOT, 'website')
 WYSIHAT_TEST_DIR      = File.join(WYSIHAT_ROOT, 'test')
 WYSIHAT_TEST_UNIT_DIR = File.join(WYSIHAT_TEST_DIR, 'unit')
 WYSIHAT_TMP_DIR       = File.join(WYSIHAT_TEST_UNIT_DIR, 'tmp')
@@ -70,10 +71,24 @@ task :doc => 'doc:build'
 namespace :doc do
   desc "Builds the documentation"
   task :build => [:update_submodules, :clean] do
+    require File.join(WYSIHAT_ROOT, "vendor", "sprockets", "lib", "sprockets")
     require File.join(WYSIHAT_ROOT, "vendor", "pdoc", "lib", "pdoc")
-    files = Dir["#{File.expand_path(File.dirname(__FILE__))}/src/**/*.js"]
-    files << { :output => WYSIHAT_DOC_DIR }
-    PDoc::Runner.new(*files).run
+    require 'tempfile'
+
+    Tempfile.open("pdoc") do |temp|
+      secretary = Sprockets::Secretary.new(
+        :root         => File.join(WYSIHAT_ROOT, "src"),
+        :load_path    => [WYSIHAT_SRC_DIR],
+        :source_files => ["wysihat.js"],
+        :strip_comments => false
+      )
+
+      secretary.concatenation.save_to(temp.path)
+      PDoc::Runner.new(temp.path,
+        :output => WYSIHAT_DOC_DIR,
+        :templates => WYSIHAT_WEBSITE_DIR
+      ).run
+    end
   end
 
   task :publish => :build do
